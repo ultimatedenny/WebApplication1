@@ -1,0 +1,415 @@
+﻿@{
+    ViewBag.Title = "Master Data User";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewBag.Title</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <a class="btn bg-success" onclick="SHOWMODAL()">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="TABLE_USER" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>PLANT</th>
+                                <th>USER ID</th>
+                                <th>NAME</th>
+                                <th>DEPARTMENT</th>
+                                <th>EMAIL</th>
+
+                                <th>PHONE</th>
+                                <th>GROUP</th>
+                                <th>CREATED BY</th>
+                                <th>CREATED ON</th>
+                                <th>CHANGE BY</th>
+
+                                <th>CHANGE ON</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </main>
+        @*<a>Authorize group: </a><span class="badge badge-dark">Administrator</span>*@
+    </div>
+</div>
+
+<div class="modal fade" id="MODAL_ADD" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_ADDLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:ADDUSER()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_ADDLabel">Add New</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    @*<div class="form-group">
+                        <label>PLANT</label>
+                        <input type="number" name="PLANT" class="form-control" id="PLANT" placeholder="Enter plant" autocomplete="off" required>
+                    </div>*@
+                    <div class="form-group">
+                        <label>PLANT</label>
+                        <select class="form-control" id="PLANT" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>USERNAME</label>
+                        <input type="text" name="USERNAME" class="form-control" id="USERNAME" placeholder="Enter username" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>EMAIL</label>
+                        <input type="email" name="EMAIL" class="form-control" id="EMAIL" placeholder="Enter email" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>PHONE</label>
+                        <input type="text" name="PHONE" class="form-control" id="PHONE" placeholder="Enter phone" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>USER ID</label>
+                        <input type="text" name="USERID" class="form-control" id="USERID" placeholder="Enter userid" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>PASSWORD</label>
+                        <input type="password" name="PASSWORD" class="form-control" id="PASSWORD" placeholder="Enter password" autocomplete="off" required>
+                    </div>
+                    <div class="form-group">
+                        <label>DEPARTMENT</label>
+                        <select class="form-control" id="DEPARTMENT" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>GROUP</label>
+                        <select class="form-control" id="GROUP" required></select>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="SUBMIT_BTN">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="MODAL_DELETE" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_DELETELabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:DELETEUSER()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_DELETELabel">Delete confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Are you sure want to delete userid below ?</label>
+                        <input type="text" name="USERID_DELETE" class="form-control" id="USERID_DELETE" placeholder="Enter userid" autocomplete="off" required readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        WEB_GET_TABLE_USER();
+    });
+
+    function SHOWMODAL() {
+        RESETFORM();
+        WEB_GET_TABLE_PLANT();
+        WEB_GET_TABLE_DEPARTMENT();
+        WEB_GET_TABLE_GROUP();
+        $('#MODAL_ADD').modal('toggle');
+        $('#SUBMIT_BTN').text('Submit');
+        $('#MODAL_ADDLabel').text('Add new');
+    }
+
+    function SHOWMODAL_DELETE(CODE) {
+        $('#USERID_DELETE').val(CODE);
+        $('#MODAL_DELETE').modal('toggle');
+    }
+
+    function SHOWMODAL_EDIT(CODE) {
+        RESETFORM();
+        WEB_GET_TABLE_DEPARTMENT();
+        WEB_GET_TABLE_GROUP();
+        setTimeout(3000);
+        setTimeout(3000);
+        var URL = "@Url.Action("WEB_DETAIL_USER", "MASTER")";
+        var MODEL = {
+            USERID: CODE
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            success: function (ajx) {
+                if (ajx.data != null) {
+                    $('#PLANT').val(ajx.data[0].PLANTCODE);
+                    $('#USERNAME').val(ajx.data[0].USERNAME);
+                    $('#EMAIL').val(ajx.data[0].EMAIL);
+                    $('#PHONE').val(ajx.data[0].PHONE);
+                    $('#USERID').val(ajx.data[0].USERID);
+                    $('#PASSWORD').val("");
+                    $('#DEPARTMENT').val(ajx.data[0].DEPARTMENT);
+                    $('#GROUP').val(ajx.data[0].BUSINESSFUNCTION);
+                    $('#MODAL_ADD').modal('toggle');
+                    $('#USERID').attr("readonly", true);
+                    $('#SUBMIT_BTN').text('Edit');
+                    $('#MODAL_ADDLabel').text('Edit');
+                }
+                else {
+                    alert(ajx.data.StatusCode, ajx.data.Message)
+                }
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+    }
+
+    function WEB_GET_TABLE_USER() {
+        var URL = "@Url.Action("WEB_GET_TABLE_USER", "MASTER")";
+        $('#TABLE_USER').DataTable({
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "destroy": true,
+            "paging": true,
+            "filter": false,
+            "orderable": true,
+            "lengthMenu": [
+                [5, 10, 20, 50, 100, 200, 500, -1],
+                [
+                    '5 rows',
+                    '10 rows',
+                    '25 rows',
+                    '50 rows',
+                    '100 rows',
+                    '200 rows',
+                    '500 rows',
+                    'Show all']
+            ],
+            "pageLength": 10,
+            "ajax": {
+                "url": URL,
+                "type": "POST",
+                "datatype": "json",
+                "data": function (a) {
+                    return $.extend({}, a, {
+                    });
+                }
+            },
+            "columns": [
+                { "data": "PLANTCODE" },
+                { "data": "USERID" },
+                { "data": "USERNAME" },
+                { "data": "DEPARTMENT" },
+                { "data": "EMAIL" },
+                { "data": "PHONE" },
+                { "data": "BUSINESSFUNCTION" },
+                { "data": "CREATEUSER" },
+                { "data": "CREATEDATE" },
+                { "data": "CHANGEUSER" },
+                { "data": "CHANGEDATE" },
+                {
+                    "render": function (data, type, full, meta) {
+                        if (full.USERID) {
+                            var EDIT_BTN = '<a class="btn bg-warning" onclick="SHOWMODAL_EDIT(\'' + full.USERID + '\')"><i class="fas fa-edit"></i></a> ';
+                            var DELETE_BTN = '<a class="btn bg-danger" onclick="SHOWMODAL_DELETE(\'' + full.USERID + '\')"><i class="fas fa-trash"></i></a> ';
+                            return EDIT_BTN + " " + DELETE_BTN;
+                        } else {
+                            return '';
+                        }
+                    },
+                    "defaultContent": ''
+                },
+            ],
+            "buttons": ["pageLength", "copy", "csv", "excel", "pdf", "print", "colvis"],
+            "dom": 'Bfrtip'
+        });
+    }
+
+    function WEB_GET_TABLE_PLANT() {
+    var URL = "@Url.Action("WEB_GET_PLANT", "MASTER")";
+    $.ajax({
+        url: URL,
+        type: 'GET',
+        success: function (ajx) {
+            if (ajx != null) {
+                var stringHTML = '';
+                stringHTML = '<option value="">SELECT</option>';
+                $("#PLANT").html(stringHTML);
+                for (var i = 0; i < ajx.data.Data.length; i++) {
+                    let option = document.createElement('option')
+                    option.value = ajx.data.Data[i].ID;
+                    option.innerHTML = ajx.data.Data[i].NAME;
+                    document.getElementById('PLANT').append(option);
+                }
+            }
+            else {
+                alert(ajx.data.StatusCode, ajx.data.Message)
+            }
+        },
+        error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+        }
+    });
+}
+
+    function WEB_GET_TABLE_DEPARTMENT() {
+        var URL = "@Url.Action("WEB_GET_DEPARTMENT", "MASTER")";
+        $.ajax({
+            url: URL,
+            type: 'GET',
+            success: function (ajx) {
+                if (ajx != null) {
+                    var stringHTML = '';
+                    stringHTML = '<option value="">SELECT</option>';
+                    $("#DEPARTMENT").html(stringHTML);
+                    for (var i = 0; i < ajx.data.Data.length; i++) {
+                        let option = document.createElement('option')
+                        option.value = ajx.data.Data[i].ID;
+                        option.innerHTML = ajx.data.Data[i].NAME;
+                        document.getElementById('DEPARTMENT').append(option);
+                    }
+                }
+                else {
+                    alert(ajx.data.StatusCode, ajx.data.Message)
+                }
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+    }
+
+    function WEB_GET_TABLE_GROUP() {
+        var URL = "@Url.Action("WEB_GET_GROUP", "MASTER")";
+        $.ajax({
+            url: URL,
+            type: 'GET',
+            success: function (ajx) {
+                if (ajx != null) {
+                    var stringHTML = '';
+                    stringHTML = '<option value="">SELECT</option>';
+                    $("#GROUP").html(stringHTML);
+                    for (var i = 0; i < ajx.data.Data.length; i++) {
+                        let option = document.createElement('option')
+                        option.value = ajx.data.Data[i].ID;
+                        option.innerHTML = ajx.data.Data[i].NAME;
+                        document.getElementById('GROUP').append(option);
+                    }
+                }
+                else {
+                    alert(ajx.data.StatusCode, ajx.data.Message)
+                }
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+    }
+
+    function ADDUSER() {
+        var URL = "";
+        if ($("#MODAL_ADDLabel").text() == "Add new") {
+            URL = "@Url.Action("WEB_ADD_USER", "MASTER")";
+        }
+        else {
+            URL = "@Url.Action("WEB_EDIT_USER", "MASTER")";
+        }
+        var MODEL = {
+            PLANTCODE: $("#PLANT").val(),
+            USERNAME: $("#USERNAME").val(),
+            EMAIL: $("#EMAIL").val(),
+            USERID: $("#USERID").val(),
+            PASSWORD: $("#PASSWORD").val(),
+            DEPARTMENT: $("#DEPARTMENT").val(),
+            BUSINESSFUNCTION: $("#GROUP").val(),
+            PHONE: $("#PHONE").val(),
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_USER').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_USER').DataTable().ajax.reload();
+        $('#MODAL_ADD').modal('hide');
+        RESETFORM();
+    }
+
+    function DELETEUSER() {
+        var URL = "@Url.Action("WEB_DELETE_USER", "MASTER")";
+        var MODEL = {
+            USERID: $("#USERID_DELETE").val()
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_USER').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_USER').DataTable().ajax.reload();
+        $('#MODAL_DELETE').modal('hide');
+        RESETFORM();
+    }
+
+    function RESETFORM() {
+        $("#PLANT").val("");
+        $("#PHONE").val("");
+        $("#USERNAME").val("");
+        $("#EMAIL").val("");
+        $("#USERID").val("");
+        $("#USERID_DELETE").val("");
+        $("#PASSWORD").val("");
+        $("#DEPARTMENT").val("");
+        $("#GROUP").val("");
+        $('#USERID').attr("readonly", false);
+    }
+
+</script>

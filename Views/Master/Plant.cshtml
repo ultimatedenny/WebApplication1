@@ -1,0 +1,272 @@
+﻿@{
+    ViewBag.Title = "Master Data PLANT";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewBag.Title</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <a class="btn bg-success" onclick="SHOWMODAL()">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="TABLE_PLANT" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>CREATED BY</th>
+                                <th>CREATED ON</th>
+                                <th>CHANGE BY</th>
+                                <th>CHANGE ON</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </main>
+       @* <a>Authorize PLANT: </a><span class="badge badge-dark">Administrator</span>*@
+    </div>
+</div>
+<div class="modal fade" id="MODAL_ADD" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_ADDLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:ADDPLANT()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_ADDLabel">Add New</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-PLANT">
+                        <label>ID</label>
+                        <input type="text" name="PLANTID" class="form-control" id="PLANTID" placeholder="Enter id" autocomplete="off" required>
+                    </div>
+                    <div class="form-PLANT">
+                        <label>NAME</label>
+                        <input type="text" name="PLANTNAME" class="form-control" id="PLANTNAME" placeholder="Enter name" autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="SUBMIT_BTN">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="MODAL_DELETE" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_DELETELabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:DELETEPLANT()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_DELETELabel">Delete confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-PLANT">
+                        <label>Are you sure want to delete PLANTid below ?</label>
+                        <input type="text" name="PLANTID_DELETE" class="form-control" id="PLANTID_DELETE" placeholder="Enter PLANTid" autocomplete="off" required readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        WEB_GET_TABLE_PLANT();
+    });
+
+    function SHOWMODAL() {
+        RESETFORM();
+        $('#MODAL_ADD').modal('toggle');
+        $('#SUBMIT_BTN').text('Submit');
+        $('#MODAL_ADDLabel').text('Add new');
+    }
+
+    function SHOWMODAL_DELETE(CODE) {
+        $('#PLANTID_DELETE').val(CODE);
+        $('#MODAL_DELETE').modal('toggle');
+    }
+
+    function SHOWMODAL_EDIT(CODE) {
+        RESETFORM();
+        setTimeout(3000);
+        setTimeout(3000);
+        var URL = "@Url.Action("WEB_DETAIL_PLANT", "MASTER")";
+        var MODEL = {
+            ID: CODE
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            success: function (ajx) {
+                if (ajx.data != null) {
+                    $('#PLANTID').val(ajx.data[0].ID);
+                    $('#PLANTNAME').val(ajx.data[0].NAME);
+
+                    $('#MODAL_ADD').modal('toggle');
+                    $('#PLANTID').attr("readonly", true);
+                    $('#SUBMIT_BTN').text('Edit');
+                    $('#MODAL_ADDLabel').text('Edit');
+                }
+                else {
+                    alert(ajx.data.StatusCode, ajx.data.Message)
+                }
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+    }
+
+    function WEB_GET_TABLE_PLANT() {
+        var URL = "@Url.Action("WEB_GET_TABLE_PLANT", "MASTER")";
+        $('#TABLE_PLANT').DataTable({
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "destroy": true,
+            "paging": true,
+            "filter": false,
+            "orderable": true,
+            "lengthMenu": [
+                [5, 10, 20, 50, 100, 200, 500, -1],
+                [
+                    '5 rows',
+                    '10 rows',
+                    '25 rows',
+                    '50 rows',
+                    '100 rows',
+                    '200 rows',
+                    '500 rows',
+                    'Show all']
+            ],
+            "pageLength": 10,
+            "ajax": {
+                "url": URL,
+                "type": "POST",
+                "datatype": "json",
+                "data": function (a) {
+                    return $.extend({}, a, {
+                    });
+                }
+            },
+            "columns": [
+                { "data": "ID" },
+                { "data": "NAME" },
+                { "data": "CREATEUSER" },
+                { "data": "CREATEDATE" },
+                { "data": "CHANGEUSER" },
+                { "data": "CHANGEDATE" },
+                {
+                    "render": function (data, type, full, meta) {
+                        if (full.ID) {
+                            var EDIT_BTN = '<a class="btn bg-warning" onclick="SHOWMODAL_EDIT(\'' + full.ID + '\')"><i class="fas fa-edit"></i></a> ';
+                            var DELETE_BTN = '<a class="btn bg-danger" onclick="SHOWMODAL_DELETE(\'' + full.ID + '\')"><i class="fas fa-trash"></i></a> ';
+                            return EDIT_BTN + " " + DELETE_BTN;
+                        } else {
+                            return '';
+                        }
+                    },
+                    "defaultContent": ''
+                },
+            ],
+            "buttons": ["pageLength", "copy", "csv", "excel", "pdf", "print", "colvis"],
+            "dom": 'Bfrtip'
+        });
+    }
+
+
+
+    function ADDPLANT() {
+        var URL = "";
+        if ($("#MODAL_ADDLabel").text() == "Add new") {
+            URL = "@Url.Action("WEB_ADD_PLANT", "MASTER")";
+        }
+        else {
+            URL = "@Url.Action("WEB_EDIT_PLANT", "MASTER")";
+        }
+        var MODEL = {
+            ID: $("#PLANTID").val(),
+            NAME: $("#PLANTNAME").val()
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_PLANT').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_PLANT').DataTable().ajax.reload();
+        $('#MODAL_ADD').modal('hide');
+        RESETFORM();
+    }
+
+    function DELETEPLANT() {
+        var URL = "@Url.Action("WEB_DELETE_PLANT", "MASTER")";
+        var MODEL = {
+            ID: $("#PLANTID_DELETE").val()
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_PLANT').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_PLANT').DataTable().ajax.reload();
+        $('#MODAL_DELETE').modal('hide');
+        RESETFORM();
+    }
+
+    function RESETFORM() {
+        $("#PLANTID").val("");
+        $("#PLANTNAME").val("");
+        $("#PLANTID_DELETE").val("");
+        $('#PLANTID').attr("readonly", false);
+    }
+
+</script>

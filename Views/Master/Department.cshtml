@@ -1,0 +1,272 @@
+﻿@{
+    ViewBag.Title = "Master Data DEPARTMENT";
+}
+
+<div class="content-header">
+    <div class="container-fluid">
+        <div class="row mb-2">
+            <div class="col-sm-6">
+                <h1 class="m-0">@ViewBag.Title</h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="content">
+    <div class="container-fluid">
+        <main>
+            <div class="card">
+                <div class="card-header">
+                    <a class="btn bg-success" onclick="SHOWMODAL()">
+                        <i class="fas fa-plus"></i>
+                    </a>
+                </div>
+                <div class="card-body">
+                    <table id="TABLE_DEPARTMENT" class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>NAME</th>
+                                <th>CREATED BY</th>
+                                <th>CREATED ON</th>
+                                <th>CHANGE BY</th>
+                                <th>CHANGE ON</th>
+                                <th>ACTION</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </main>
+        @*<a>Authorize DEPARTMENT: </a><span class="badge badge-dark">Administrator</span>*@
+    </div>
+</div>
+<div class="modal fade" id="MODAL_ADD" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_ADDLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:ADDDEPARTMENT()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_ADDLabel">Add New</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-DEPARTMENT">
+                        <label>ID</label>
+                        <input type="text" name="DEPARTMENTID" class="form-control" id="DEPARTMENTID" placeholder="Enter id" autocomplete="off" required>
+                    </div>
+                    <div class="form-DEPARTMENT">
+                        <label>NAME</label>
+                        <input type="text" name="DEPARTMENTNAME" class="form-control" id="DEPARTMENTNAME" placeholder="Enter name" autocomplete="off" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary" id="SUBMIT_BTN">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="MODAL_DELETE" data-backdrop="static" tabindex="-1" role="dialog" aria-labelledby="MODAL_DELETELabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="javascript:DELETEDEPARTMENT()">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="MODAL_DELETELabel">Delete confirmation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-DEPARTMENT">
+                        <label>Are you sure want to delete DEPARTMENTid below ?</label>
+                        <input type="text" name="DEPARTMENTID_DELETE" class="form-control" id="DEPARTMENTID_DELETE" placeholder="Enter DEPARTMENTid" autocomplete="off" required readonly>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Discard</button>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    $(document).ready(function () {
+        WEB_GET_TABLE_DEPARTMENT();
+    });
+
+    function SHOWMODAL() {
+        RESETFORM();
+        $('#MODAL_ADD').modal('toggle');
+        $('#SUBMIT_BTN').text('Submit');
+        $('#MODAL_ADDLabel').text('Add new');
+    }
+
+    function SHOWMODAL_DELETE(CODE) {
+        $('#DEPARTMENTID_DELETE').val(CODE);
+        $('#MODAL_DELETE').modal('toggle');
+    }
+
+    function SHOWMODAL_EDIT(CODE) {
+        RESETFORM();
+        setTimeout(3000);
+        setTimeout(3000);
+        var URL = "@Url.Action("WEB_DETAIL_DEPARTMENT", "MASTER")";
+        var MODEL = {
+            ID: CODE
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            success: function (ajx) {
+                if (ajx.data != null) {
+                    $('#DEPARTMENTID').val(ajx.data[0].ID);
+                    $('#DEPARTMENTNAME').val(ajx.data[0].NAME);
+
+                    $('#MODAL_ADD').modal('toggle');
+                    $('#DEPARTMENTID').attr("readonly", true);
+                    $('#SUBMIT_BTN').text('Edit');
+                    $('#MODAL_ADDLabel').text('Edit');
+                }
+                else {
+                    alert(ajx.data.StatusCode, ajx.data.Message)
+                }
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+    }
+
+    function WEB_GET_TABLE_DEPARTMENT() {
+        var URL = "@Url.Action("WEB_GET_TABLE_DEPARTMENT", "MASTER")";
+        $('#TABLE_DEPARTMENT').DataTable({
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": false,
+            "responsive": true,
+            "destroy": true,
+            "paging": true,
+            "filter": false,
+            "orderable": true,
+            "lengthMenu": [
+                [5, 10, 20, 50, 100, 200, 500, -1],
+                [
+                    '5 rows',
+                    '10 rows',
+                    '25 rows',
+                    '50 rows',
+                    '100 rows',
+                    '200 rows',
+                    '500 rows',
+                    'Show all']
+            ],
+            "pageLength": 10,
+            "ajax": {
+                "url": URL,
+                "type": "POST",
+                "datatype": "json",
+                "data": function (a) {
+                    return $.extend({}, a, {
+                    });
+                }
+            },
+            "columns": [
+                { "data": "ID" },
+                { "data": "NAME" },
+                { "data": "CREATEUSER" },
+                { "data": "CREATEDATE" },
+                { "data": "CHANGEUSER" },
+                { "data": "CHANGEDATE" },
+                {
+                    "render": function (data, type, full, meta) {
+                        if (full.ID) {
+                            var EDIT_BTN = '<a class="btn bg-warning" onclick="SHOWMODAL_EDIT(\'' + full.ID + '\')"><i class="fas fa-edit"></i></a> ';
+                            var DELETE_BTN = '<a class="btn bg-danger" onclick="SHOWMODAL_DELETE(\'' + full.ID + '\')"><i class="fas fa-trash"></i></a> ';
+                            return EDIT_BTN + " " + DELETE_BTN;
+                        } else {
+                            return '';
+                        }
+                    },
+                    "defaultContent": ''
+                },
+            ],
+            "buttons": ["pageLength", "copy", "csv", "excel", "pdf", "print", "colvis"],
+            "dom": 'Bfrtip'
+        });
+    }
+
+
+
+    function ADDDEPARTMENT() {
+        var URL = "";
+        if ($("#MODAL_ADDLabel").text() == "Add new") {
+            URL = "@Url.Action("WEB_ADD_DEPARTMENT", "MASTER")";
+        }
+        else {
+            URL = "@Url.Action("WEB_EDIT_DEPARTMENT", "MASTER")";
+        }
+        var MODEL = {
+            ID: $("#DEPARTMENTID").val(),
+            NAME: $("#DEPARTMENTNAME").val()
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_DEPARTMENT').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_DEPARTMENT').DataTable().ajax.reload();
+        $('#MODAL_ADD').modal('hide');
+        RESETFORM();
+    }
+
+    function DELETEDEPARTMENT() {
+        var URL = "@Url.Action("WEB_DELETE_DEPARTMENT", "MASTER")";
+        var MODEL = {
+            ID: $("#DEPARTMENTID_DELETE").val()
+        };
+        $.ajax({
+            type: "POST",
+            url: URL,
+            data: '{MODEL: ' + JSON.stringify(MODEL) + '}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (ajx) {
+                alert(ajx.data.Message);
+                $('#TABLE_DEPARTMENT').DataTable().ajax.reload();
+            },
+            error: function (xhr, textStatus, error, XMLHttpRequest) {
+
+            }
+        });
+        $('#TABLE_DEPARTMENT').DataTable().ajax.reload();
+        $('#MODAL_DELETE').modal('hide');
+        RESETFORM();
+    }
+
+    function RESETFORM() {
+        $("#DEPARTMENTID").val("");
+        $("#DEPARTMENTNAME").val("");
+        $("#DEPARTMENTID_DELETE").val("");
+        $('#DEPARTMENTID').attr("readonly", false);
+    }
+
+</script>
